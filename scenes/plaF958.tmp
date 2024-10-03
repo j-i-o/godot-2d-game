@@ -9,9 +9,7 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_kysy4"]
 shader = ExtResource("1_578vr")
-shader_parameter/enabled = 0.0
-shader_parameter/shine_color = Color(1, 1, 1, 1)
-shader_parameter/cycle_speed = 1.0
+shader_parameter/blue = 1.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_pe7v4"]
 atlas = ExtResource("2_yfaxd")
@@ -408,8 +406,12 @@ autoplay = "idle"
 position = Vector2(0, -6)
 shape = SubResource("CircleShape2D_r64rg")
 
-[node name="HurtTimer" type="Timer" parent="."]
-wait_time = 2.0
+[node name="Timer" type="Timer" parent="."]
+wait_time = 1.5
+one_shot = true
+
+[node name="JumpTimer" type="Timer" parent="."]
+wait_time = 1.5
 one_shot = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
@@ -428,5 +430,11 @@ bus = &"SFX"
 stream = ExtResource("4_ljgnm")
 bus = &"SFX"
 
-[connection signal="timeout" from="HurtTimer" to="." method="_on_hurt_timer_timeout"]
+[node name="JumpAnimationTimer" type="Timer" parent="."]
+wait_time = 0.5
+one_shot = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
+[connection signal="timeout" from="JumpTimer" to="." method="_on_jump_timer_timeout"]
 [connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_animation_player_animation_finished"]
+[connection signal="timeout" from="JumpAnimationTimer" to="." method="_on_jump_animation_timer_timeout"]

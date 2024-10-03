@@ -7,11 +7,9 @@ enum skills {FLY, HIGHJUMP}
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
-@onready var timer: Timer = $Timer
-@onready var jump_timer: Timer = $JumpTimer
+@onready var hurtTimer: Timer = $HurtTimer
 @onready var jump_sound: AudioStreamPlayer2D = $JumpSound
 @onready var feather_sound: AudioStreamPlayer2D = $FeatherSound
-@onready var jump_animation_timer: Timer = $JumpAnimationTimer
 
 var blockedInput
 var immunity = false
@@ -19,6 +17,7 @@ var health = 100
 var status = estados.OK
 var jumping = false
 var skill = []
+var jumpTimer = 0.0
 
 func _ready() -> void:
 	SignalBus.on_hit.connect(_on_hit)
@@ -30,12 +29,22 @@ func _physics_process(delta: float) -> void:
 	else:
 		jumping = false
 
+	#if Input.is_action_just_pressed("special"):
+		
 	# Handle jump.
-	if Input.is_action_just_pressed("jump") and skill.has(skills.HIGHJUMP):
-		#Empiezo a cargar el salto
-		jump_animation_timer.start()
-		jump_timer.start()
-	if Input.is_action_just_released("jump"):
+	if skill.has(skills.HIGHJUMP):
+		if Input.is_action_pressed("move_down") and !jumping:
+			jumpTimer += delta
+			if jumpTimer < 4.0 and jumpTimer > 1.5:
+				setShaderParameter("enabled", 1)
+				if hurtTimer.is_stopped():
+					setShaderParameter("shine_color", Vector4(1.0, 1.0, 1.0, 1.0))
+				setShaderParameter("cycle_speed", 6)
+			elif jumpTimer > 4.0:
+				setShaderParameter("cycle_speed", 10)
+		elif Input.is_action_just_released("move_down"):
+			highJump()
+	if Input.is_action_just_pressed("jump"):
 		jump()
 
 	# Get the input direction and handle the movement/deceleration.
@@ -60,7 +69,7 @@ func _physics_process(delta: float) -> void:
 	
 	if status == estados.HIT:
 		velocity = knockback(delta)
-		status = estados.HURT
+		status = estados.OK
 	elif direction:
 		velocity.x = direction * SPEED
 	else:
@@ -68,17 +77,15 @@ func _physics_process(delta: float) -> void:
 	
 	move_and_slide()
 
-func _on_timer_timeout() -> void:
-	status = estados.OK
-	animation_player.stop()
-	
 func _on_hit(damage) -> void:
 	if(status == estados.OK):
-		animation_player.play("hurt")
 		status = estados.HIT
 		health -= damage
 		print(health)
-		timer.start()
+		hurtTimer.start()
+		setShaderParameter("enabled", 1.0)
+		setShaderParameter("shine_color", Vector4(1.0, 0.0, 0.0, 1.0))
+		setShaderParameter("cycle_speed", 9.0)
 
 func knockback (delta: float) -> Vector2:
 	status = estados.HURT
@@ -91,30 +98,30 @@ func _on_animation_player_animation_finished(anim_name: StringName) -> void:
 	if (anim_name == "flying" and !is_on_floor()) or anim_name == "hurt":
 		status = estados.OK
 
-func jump() -> void:
-	jumping = true
+func highJump() -> void:
+	print(jumpTimer)
+	setShaderParameter("enabled", 0.0)
 	var charge = 1
-	if animation_player.current_animation == "chargingJump":
-		charge = 1.3
-	elif animation_player.current_animation == "chargedJump":
-		charge = 1.5
-	if animation_player.current_animation == "chargingJump" or animation_player.current_animation == "chargedJump":
-		animation_player.stop()
+	jumping = true
 	
+	if jumpTimer < 4.0 and jumpTimer >= 1.5:
+		print("salto medio")
+		charge = 1.3
+	elif jumpTimer >= 4.0:
+		print("salto alto")
+		charge = 1.5
+	else:
+		print("salto comun")
+	velocity.y = JUMP_VELOCITY * charge
+	jumpTimer = 0
+
+func jump() -> void:
 	if is_on_floor():
 		jump_sound.play()
-		velocity.y = JUMP_VELOCITY * charge
+		velocity.y = JUMP_VELOCITY
 	elif status != estados.FLY and skill.has(skills.FLY):
 		status = estados.FLY
 		velocity.y = JUMP_VELOCITY
-
-func _on_jump_timer_timeout() -> void:
-	if !jumping and Input.is_action_pressed("jump"): 
-		animation_player.play("chargedJump")
-	
-func _on_jump_animation_timer_timeout() -> void:
-	if !jumping and Input.is_action_pressed("jump"):
-		animation_player.play("chargingJump")
 
 func addSkill(skillNuevo) -> void:
 	match skillNuevo:
@@ -122,3 +129,9 @@ func addSkill(skillNuevo) -> void:
 			skill.append(skills.FLY)
 		"jump":
 			skill.append(skills.HIGHJUMP)
+
+func setShaderParameter(parameter, value) -> void:
+	animated_sprite.material.set_shader_parameter(parameter, value)
+
+func _on_hurt_timer_timeout() -> void:
+	setShaderParameter("enabled", 0.0)

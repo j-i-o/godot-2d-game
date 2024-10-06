@@ -2,8 +2,15 @@ extends Node
 
 var score = 0
 var lives = 5
+var day_cycle = 0.0
+var dayTime = 0
 @onready var score_label: Label = $ScoreLabel
 #@onready var felicitaciones_label: Label = $FelicitacionesLabel
+
+func _process(delta: float) -> void:
+	day_cycle += delta
+	if day_cycle > 12:
+		day_cycle = 0.0
 
 func add_point():
 	score += 1

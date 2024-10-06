@@ -8,8 +8,9 @@ enum skills {FLY, HIGHJUMP}
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var hurtTimer: Timer = $HurtTimer
-@onready var jump_sound: AudioStreamPlayer2D = $JumpSound
-@onready var feather_sound: AudioStreamPlayer2D = $FeatherSound
+@onready var jump_sound: AudioStreamPlayer2D = $Sounds/JumpSound
+@onready var feather_sound: AudioStreamPlayer2D = $Sounds/FeatherSound
+@onready var hurt_sound: AudioStreamPlayer2D = $Sounds/HurtSound
 
 var blockedInput
 var immunity = false
@@ -79,6 +80,7 @@ func _physics_process(delta: float) -> void:
 
 func _on_hit(damage) -> void:
 	if(status == estados.OK):
+		hurt_sound.play()
 		status = estados.HIT
 		health -= damage
 		print(health)

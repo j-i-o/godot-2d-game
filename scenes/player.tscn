@@ -1,4 +1,4 @@
-[gd_scene load_steps=48 format=3 uid="uid://de8015a6qdtoi"]
+[gd_scene load_steps=49 format=3 uid="uid://de8015a6qdtoi"]
 
 [ext_resource type="Shader" path="res://shaders/charging.gdshader" id="1_578vr"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="1_eu1wi"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://dk1iqy4u14ymy" path="res://assets/sprites/knight-fly.png" id="2_yfaxd"]
 [ext_resource type="AudioStream" uid="uid://ddjnwca5b4mi4" path="res://assets/sounds/jump.wav" id="3_7c2jg"]
 [ext_resource type="AudioStream" uid="uid://c48bh7f0o1xsn" path="res://assets/sounds/feather.wav" id="4_ljgnm"]
+[ext_resource type="AudioStream" uid="uid://cq57hw8jx6thb" path="res://assets/sounds/hurt.wav" id="5_e0bit"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_kysy4"]
 shader = ExtResource("1_578vr")
@@ -328,7 +329,7 @@ length = 0.3
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("FeatherSound:playing")
+tracks/0/path = NodePath("Sounds/FeatherSound:playing")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -418,13 +419,19 @@ libraries = {
 }
 autoplay = "RESET"
 
-[node name="JumpSound" type="AudioStreamPlayer2D" parent="."]
+[node name="Sounds" type="Node" parent="."]
+
+[node name="HurtSound" type="AudioStreamPlayer2D" parent="Sounds"]
+stream = ExtResource("5_e0bit")
+pitch_scale = 1.5
+bus = &"SFX"
+
+[node name="JumpSound" type="AudioStreamPlayer2D" parent="Sounds"]
 stream = ExtResource("3_7c2jg")
-volume_db = -15.847
 pitch_scale = 0.5
 bus = &"SFX"
 
-[node name="FeatherSound" type="AudioStreamPlayer2D" parent="."]
+[node name="FeatherSound" type="AudioStreamPlayer2D" parent="Sounds"]
 stream = ExtResource("4_ljgnm")
 bus = &"SFX"
 
